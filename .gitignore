@@ -1,0 +1,19 @@
+# build artifacts
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Private council frameworks - proprietary IP, not for the public repo.
+# (Tools public, councils private. They live locally and run from the full tree.)
+hardhats/crews/devs.py
+hardhats/crews/jury.py
+hardhats/crews/apex.py
+hardhats/crews/operators.py
+hardhats/crews/hexcodex.py
+hardhats/crews/sixfold.py
+hardhats/crews/sevennotes.py
+hardhats/crews/voices.py
+hardhats/crews/voice.py
+hardhats/crews/_hexcodex_roster.py

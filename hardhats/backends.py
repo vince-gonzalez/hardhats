@@ -1,16 +1,14 @@
 """
-Multi-backend model caller for the atom-effectiveness study.
+hardHats model layer - one chat() over a federation of free backends.
 
-One chat() over four free backends: Gemini (native), and Groq, OpenRouter and
-Ollama (all OpenAI-compatible, so one adapter). Keys are read from the
-environment or, failing that, the Windows user settings that `setx` writes to -
-the same fallback the atom pipeline uses - and are NEVER printed. Standard
-library only; nothing is pip-installed into his environment.
+Gemini (native) plus a set of OpenAI-compatible endpoints - Groq, OpenRouter,
+Ollama, Cloudflare Workers AI, Mistral, Cohere and more - behind a single
+chat(backend, prompt) call, so a crew can wear a different model on every hat.
+Keys are read from the environment, or failing that the Windows user settings
+that `setx` writes, and are NEVER printed. Standard library only; nothing is
+pip-installed into the host environment. Add a key, gain a perspective.
 
-A per-backend daily call budget guards each free tier: call budget_left() /
-spend() around real runs so a study can never overrun a free quota.
-
-  python tools/backends.py            # smoke-test connectivity (one tiny call each)
+  python -m hardhats.backends          # smoke-test which backends answer
 """
 import json
 import os
@@ -75,17 +73,19 @@ BACKENDS: dict[str, dict] = {
         "kind": "openai", "base": "https://api.mistral.ai/v1", "key_env": "MISTRAL_API_KEY",
         "models": ["mistral-small-latest", "open-mistral-nemo"],
     },
-    "nvidia": {
+    "nvidia": {  # NIM: key valid, but the OpenAI-compat endpoint rejects its own
+        # catalog ids (404/410) on this tier; deepseek-flash is reachable but slow.
         "kind": "openai", "base": "https://integrate.api.nvidia.com/v1", "key_env": "NVIDIA_API_KEY",
-        "models": ["meta/llama-3.3-70b-instruct", "nvidia/llama-3.1-nemotron-70b-instruct"],
+        "models": ["deepseek-ai/deepseek-v4.1-flash"],
     },
-    "sambanova": {
+    "sambanova": {  # key valid; returns 402 until the account is activated in the console
         "kind": "openai", "base": "https://api.sambanova.ai/v1", "key_env": "SAMBANOVA_API_KEY",
-        "models": ["Meta-Llama-3.3-70B-Instruct"],
+        "models": ["Meta-Llama-3.3-70B-Instruct", "gpt-oss-120b"],
     },
     "cohere": {  # non-commercial free tier - perspective/research only, not paid products
         "kind": "openai", "base": "https://api.cohere.ai/compatibility/v1", "key_env": "COHERE_API_KEY",
-        "models": ["command-r-plus", "command-r"],
+        # Live 2026-10-17 on this account's compat endpoint.
+        "models": ["command-a-03-2025", "c4ai-aya-expanse-32b"],
     },
 }
 
@@ -133,9 +133,13 @@ def _gemini_chat(key: str, model: str, prompt: str,
 
 
 def chat(backend: str, prompt: str, model: str | None = None,
-         temperature: float = 0.0, max_tokens: int = 700) -> str:
+         temperature: float = 0.0, max_tokens: int = 700,
+         attempts: int = 4) -> str:
     """One completion. Falls back across the backend's candidate models on a
-    bad-model error; waits out rate limits. Raises RuntimeError on total failure."""
+    bad-model error; waits out rate limits across `attempts` tries. Raises
+    RuntimeError on total failure. Pass attempts=1 to fail fast (no backoff) -
+    a council that spans many backends would rather roll to the next model than
+    sit through a free-tier 429."""
     spec = BACKENDS[backend]
     key = read_key(spec["key_env"]) if spec["key_env"] else None
     if spec["key_env"] and not key:
@@ -149,14 +153,14 @@ def chat(backend: str, prompt: str, model: str | None = None,
     models = [model] if model else spec["models"]
     last = ""
     for m in models:
-        for attempt in range(4):
+        for attempt in range(attempts):
             try:
                 if spec["kind"] == "gemini":
                     return _gemini_chat(key, m, prompt, temperature, max_tokens)
                 return _openai_chat(base, key, m, prompt, temperature, max_tokens)
             except urllib.error.HTTPError as e:
                 last = f"{backend}/{m} HTTP {e.code}"
-                if e.code in (429, 500, 502, 503) and attempt < 3:
+                if e.code in (429, 500, 502, 503) and attempt < attempts - 1:
                     time.sleep(12 * (attempt + 1))
                     continue
                 break  # 400/401/404 -> try the next candidate model
@@ -165,7 +169,7 @@ def chat(backend: str, prompt: str, model: str | None = None,
                 break
             except (TimeoutError, urllib.error.URLError) as e:
                 last = f"{backend}/{m} no answer: {type(e).__name__}"
-                if attempt < 2:
+                if attempt < attempts - 1:
                     time.sleep(8)
                     continue
                 break

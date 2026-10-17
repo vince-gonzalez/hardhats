@@ -83,7 +83,15 @@ class Crew:
         for hat in self.hats:
             if log:
                 log(f"[{hat.name}] ({hat.kind}) ...")
-            out = hat.wear(context).strip()
+            try:
+                out = hat.wear(context).strip()
+            except Exception as e:  # noqa: BLE001
+                # A flaky hat must never take the crew's facts down with it. A
+                # free-tier 429 on one model shouldn't throw away the gate
+                # verdicts already computed. Record the error and carry on; the
+                # caller decides severity - a gate hat's ERROR fails closed, an
+                # advisory LLM hat's does not.
+                out = f"ERROR  {type(e).__name__}: {e}"
             outputs[hat.name] = out
             context += f"\n\n{hat.name} produced:\n{out}"
         return outputs
