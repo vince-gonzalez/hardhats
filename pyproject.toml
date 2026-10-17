@@ -10,13 +10,18 @@ readme = "README.md"
 requires-python = ">=3.9"
 authors = [{ name = "Vincent Gonzalez" }]
 keywords = ["agents", "llm", "orchestration", "multi-model", "crew", "factory"]
-# license: the owner chooses it before publishing.
+license = "MIT"
+license-files = ["LICENSE"]
 classifiers = [
   "Programming Language :: Python :: 3",
   "Topic :: Software Development :: Libraries",
   "Operating System :: OS Independent",
 ]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/vince-gonzalez/hardhats"
+Repository = "https://github.com/vince-gonzalez/hardhats"
 
 [tool.setuptools]
 packages = ["hardhats"]

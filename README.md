@@ -46,4 +46,4 @@ environment, keys never printed. Add a key, gain a perspective.
 verified with gate hats only, so it proves out with zero model calls.
 
 ## License
-Not chosen yet — the owner's call before publishing.
+MIT. Copyright Vincent Gonzalez / F-Keys Creative LLC.
