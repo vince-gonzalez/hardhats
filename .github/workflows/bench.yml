@@ -1,0 +1,25 @@
+name: bench
+
+# Run the bench's own gate suite on every push and pull request, so a change that
+# quietly breaks a seat's gate goes red before it merges. Stdlib only - nothing to
+# install. The proof seat's kernel test skips when no Metamath kernel is on the
+# runner; cite and sec are stubbed, so the suite needs no network.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run the bench gate suite
+        run: python -m unittest discover -s tests -v

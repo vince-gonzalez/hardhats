@@ -1,0 +1,7 @@
+{
+  "container": {"length": 100, "width": 100, "height": 100, "max_weight": 1000},
+  "unit": "cm",
+  "items": [
+    {"id": "box1", "length": 150, "width": 50, "height": 50, "weight": 200, "x": 0, "y": 0, "z": 0}
+  ]
+}

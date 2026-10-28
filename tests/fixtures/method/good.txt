@@ -1,0 +1,6 @@
+We determined sample size a priori via a power analysis in G*Power (alpha=.05, power=.80),
+yielding n=64 per group. Participants were randomly assigned to condition (double-blind).
+The study was pre-registered on OSF (osf.io/abcde). We report Cohen's d and 95% confidence
+intervals alongside p-values, and corrected for multiple comparisons using the Benjamini-Hochberg
+FDR procedure. Pre-registered exclusion criteria removed 3 outliers. Data and analysis code are
+available at github.com/lab/study.

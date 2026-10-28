@@ -1,0 +1,3 @@
+{"openapi":"3.0.3","info":{"title":"X","version":"1.0.0"},"servers":[{"url":"https://x"}],
+ "paths":{"/a/{id}":{"get":{"operationId":"getA","parameters":[{"name":"id","in":"path"}],
+ "responses":{"200":{"description":"ok"},"404":{"description":"nope"}}}}}}

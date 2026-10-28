@@ -1,0 +1,9 @@
+{
+  "finalUrl": "https://example.test/",
+  "audits": {
+    "largest-contentful-paint": {"numericValue": 5200},
+    "cumulative-layout-shift": {"numericValue": 0.34},
+    "total-blocking-time": {"numericValue": 800},
+    "interaction-to-next-paint": {"numericValue": 640}
+  }
+}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>flash demo</title>
+  <style>
+    @keyframes strobe { 0% { opacity: 0; } 100% { opacity: 1; } }
+    .alert { animation: strobe 0.1s infinite; background: #fff; }
+  </style>
+</head>
+<body>
+  <div class="alert">WIN</div>
+  <script>
+    setInterval(function () { document.body.classList.toggle("flash"); }, 50);
+  </script>
+</body>
+</html>

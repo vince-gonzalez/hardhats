@@ -1,0 +1,2 @@
+Some loose working notes. No README, no run instructions, no license, no
+pinned environment - nobody could re-run this from what is here.

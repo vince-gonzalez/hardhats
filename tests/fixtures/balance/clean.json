@@ -1,0 +1,5 @@
+{"fps":60,"moves":[
+ {"name":"jab","startup":5,"active":2,"recovery":9,"onBlock":-1,"onHit":2,"damage":30},
+ {"name":"mid","startup":13,"active":3,"recovery":16,"onBlock":-3,"onHit":5,"damage":60},
+ {"name":"heavy","startup":20,"active":4,"recovery":24,"onBlock":-9,"onHit":8,"damage":90}
+]}

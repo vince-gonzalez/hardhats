@@ -1,0 +1,1 @@
+Raw data with no checksum manifest - a reader cannot verify its integrity.

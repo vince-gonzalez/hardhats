@@ -1,0 +1,5 @@
+{
+  "greeting": "Hola {{name}}",
+  "farewell": "Adios",
+  "items": "Tienes {{count}} articulos"
+}

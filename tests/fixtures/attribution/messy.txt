@@ -1,0 +1,4 @@
+https://site.test/landing
+https://site.test/promo?utm_source=Email
+https://site.test/a?utm_source=email&utm_medium=email&utm_campaign=spring
+https://site.test/b?utm_source=Email&utm_medium=Email&utm_campaign=fall

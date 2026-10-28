@@ -1,0 +1,4 @@
+We compared the groups across several measures. A t-test showed p < .05 for reaction time,
+p = .03 for accuracy, p = .04 for confidence, p < .01 for recall, p = .02 for precision,
+p = .049 for recognition, p = .01 for latency, and p < .001 for the composite score.
+We conclude the intervention works.

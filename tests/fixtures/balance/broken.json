@@ -1,0 +1,5 @@
+{"fps":60,"moves":[
+ {"name":"jab","startup":4,"active":2,"recovery":8,"onBlock":3,"onHit":6,"damage":30},
+ {"name":"overhead","startup":22,"active":3,"recovery":18,"onBlock":2,"onHit":5,"damage":80},
+ {"name":"dp","startup":6,"active":6,"recovery":30,"onBlock":-20,"onHit":2,"damage":120}
+]}

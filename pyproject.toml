@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hardhats"
+version = "0.3.0"
+description = "hardHats: a framework for crews of agents, each wearing a hat - an LLM instruction or a deterministic gate - run across a federation of free model backends."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Vincent Gonzalez" }]
+keywords = ["agents", "llm", "orchestration", "multi-model", "crew", "factory"]
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Libraries",
+  "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/vince-gonzalez/hardhats"
+Repository = "https://github.com/vince-gonzalez/hardhats"
+
+[tool.setuptools.packages.find]
+include = ["hardhats*"]

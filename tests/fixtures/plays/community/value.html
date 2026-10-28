@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>What a bot-traffic audit of our launch found</title></head>
+<body>
+  <h1>What a bot-traffic audit of our launch day actually found</h1>
+  <p>We pulled the raw access log from launch day and ran it through a simple audit instead of
+  trusting the dashboard number. The dashboard said ten thousand visits. The log told a different
+  story: a large share of the requests came from clients whose user-agent plainly declared a crawler,
+  and another slice never pulled a single stylesheet or image, which is what a real browser does when
+  a person loads a page.</p>
+  <p>Once we removed the declared bots and the render-nothing hits, the human figure was a fraction of
+  the headline. That changed how we read the whole launch: the channel we thought worked had mostly
+  sent machines, and the one small forum post we almost ignored had sent the humans who actually
+  stayed and clicked through.</p>
+  <p>Here is the method we used, the thresholds we picked, and why, so you can run the same check on
+  your own log and stop trusting a number you have not taken apart. If this is useful you can follow
+  along where I write these up.</p>
+</body>
+</html>

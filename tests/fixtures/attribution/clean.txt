@@ -1,0 +1,3 @@
+https://site.test/a?utm_source=newsletter&utm_medium=email&utm_campaign=launch
+https://site.test/b?utm_source=newsletter&utm_medium=email&utm_campaign=launch
+https://site.test/c?utm_source=partner&utm_medium=referral&utm_campaign=launch
