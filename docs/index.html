@@ -8,7 +8,7 @@
 <meta property="og:title" content="hardHats">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://vince-gonzalez.github.io/hardhats/">
-<meta property="og:description" content="A verdict a chatbot can't fake. A bench of 40 gates and a GitHub Action that fails the build on a real defect.">
+<meta property="og:description" content="A verdict a chatbot can't fake. Six inspectors and a GitHub Action that fails the build on a real defect.">
 <!-- og:image + og:image:width/height are added at publish with the hosted absolute URL (1200x630). -->
 <meta name="twitter:card" content="summary">
 <style>
@@ -100,7 +100,7 @@
     <a class="brand" href="#top"><b>hard</b>Hats</a>
     <nav class="top" aria-label="Primary">
       <a href="#install">Install</a>
-      <a href="#bench">The bench</a>
+      <a href="#bench">Inspectors</a>
       <a href="#ci">Gate CI</a>
       <a href="#factory">The factory</a>
       <a href="https://github.com/vince-gonzalez/hardhats">GitHub</a>
@@ -156,32 +156,36 @@
   <div class="wrap">
     <h2>Thirty seconds</h2>
     <pre class="term"><code><span class="cmd">$ pip install hardhats</span>
-<span class="cmd">$ python -m hardhats.crews</span>              <span class="dim"># list the 40 seats</span>
-<span class="cmd">$ python -m hardhats.crews sec https://your.site</span>   <span class="dim"># missing OWASP headers</span>
-<span class="cmd">$ python -m hardhats.crews route ./my-project</span>      <span class="dim"># don't know which? let it pick</span></code></pre>
-    <p class="muted">Add <code>--json</code> to any seat for a machine-readable envelope a script or
-      another agent can read: <code>seat</code>, <code>verdict</code>, <code>exit</code>, <code>detail</code>.</p>
+<span class="cmd">$ python -m hardhats.crews</span>                 <span class="dim"># list the six inspectors and their checks</span>
+<span class="cmd">$ python -m hardhats.crews security ./src</span>     <span class="dim"># every security check that applies</span>
+<span class="cmd">$ python -m hardhats.crews route ./my-project</span> <span class="dim"># don't know which? let it pick</span></code></pre>
+    <p class="muted">Add <code>--json</code> to any inspector or check for a machine-readable envelope a
+      script or another agent can read: <code>verdict</code>, <code>exit</code>, <code>detail</code>.</p>
   </div>
 </section>
 
 <section id="bench">
   <div class="wrap">
-    <h2>The bench — an expert for the call</h2>
-    <p>40 seats, summoned by keyword, each gated on a real external standard it cannot fake.</p>
+    <h2>Six inspectors</h2>
+    <p>Point an inspector at a file, a folder, or a URL. It runs only the checks whose signal is
+      present, composes one verdict, and prints what it did <b>not</b> check.</p>
     <div class="grid">
-      <div class="card"><h3>crypteng</h3><p>A secret committed in the clear, or crypto broken by design. Values redacted.</p></div>
-      <div class="card"><h3>inject</h3><p>The calls that turn data into code: eval/exec, unsafe deserialization, injected shell.</p></div>
-      <div class="card"><h3>ghactions</h3><p>Script injection and pwn-request patterns in your CI workflows.</p></div>
-      <div class="card"><h3>seizure</h3><p>Photosensitive-flash candidates, measured against the WCAG 2.3.1 three-per-second limit.</p></div>
-      <div class="card"><h3>tests</h3><p>A suite that only looks real: mutation testing, not a green checkmark.</p></div>
-      <div class="card"><h3>sec</h3><p>Missing OWASP secure headers on a live URL.</p></div>
+      <div class="card"><h3>claims</h3><p>Does every claim survive a real measurement? A theorem against a kernel, a colour against the perceptual engine, a suite against a mutation.</p></div>
+      <div class="card"><h3>security</h3><p>Can a hostile input get control or data? Committed secrets, injection sinks, exploitable CI, missing headers.</p></div>
+      <div class="card"><h3>contract</h3><p>Is every declared part present and consistent? API specs, schemas, locale parity, structured data, worker bindings.</p></div>
+      <div class="card"><h3>reproducible</h3><p>Will it run the same for someone else? Pinned dependencies, a re-run checklist, archival fixity and open formats.</p></div>
+      <div class="card"><h3>reach</h3><p>Can a real person find, receive, and trust the path? Indexability, email auth, live links, human-vs-bot traffic.</p></div>
+      <div class="card"><h3>safety</h3><p>Will it harm or break the law against the person on the other end? Photosensitive flash, accessibility, allergen labels, licence, child data.</p></div>
     </div>
-    <p class="seatline">and 34 more:
-      <b>og</b> <b>seo</b> <b>deliverability</b> <b>traffic</b> <b>attribution</b> <b>pwa</b>
-      <b>gameperf</b> <b>perf</b> <b>a11y</b> <b>api</b> <b>schema</b> <b>deps</b> <b>env</b>
-      <b>links</b> <b>richdata</b> <b>resilient</b> <b>proof</b> <b>cite</b> <b>geom</b> <b>vision</b>
-      <b>i18n</b> <b>spec</b> <b>method</b> <b>archive</b> <b>repro</b> <b>privacy</b> <b>license</b>
-      <b>food</b> <b>ops</b> <b>balance</b> <b>cipher</b> <b>community</b> <b>loop</b> <b>relay</b>.</p>
+    <p class="seatline">Under them, the checks, each gated on a real external standard it cannot fake:
+      <b>proof</b> <b>geom</b> <b>vision</b> <b>tests</b> <b>ops</b> <b>balance</b> <b>perf</b>
+      <b>gameperf</b> <b>resilient</b> <b>crypteng</b> <b>inject</b> <b>ghactions</b> <b>sec</b>
+      <b>api</b> <b>schema</b> <b>spec</b> <b>i18n</b> <b>richdata</b> <b>og</b> <b>env</b> <b>method</b>
+      <b>deps</b> <b>repro</b> <b>archive</b> <b>seo</b> <b>deliverability</b> <b>links</b> <b>traffic</b>
+      <b>pwa</b> <b>attribution</b> <b>seizure</b> <b>vpat</b> <b>food</b> <b>license</b> <b>privacy</b>.</p>
+    <p class="muted" style="margin-top:14px">And an instrument that refuses to fake a verdict:
+      <code>cipher</code> measures index of coincidence and entropy on a symbol stream and says
+      plainly what stays open. A measurement you can trust, kept apart from a gate.</p>
   </div>
 </section>
 
@@ -199,12 +203,12 @@
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: <span class="ok">vince-gonzalez/hardhats@v0.4.0</span></code></pre>
+      - uses: <span class="ok">vince-gonzalez/hardhats@v0.5.0</span></code></pre>
     <p>Catch it before it ever leaves your machine, with pre-commit:</p>
     <pre class="term"><code><span class="dim"># .pre-commit-config.yaml</span>
 repos:
   - repo: https://github.com/vince-gonzalez/hardhats
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: <span class="ok">hardhats</span>            <span class="dim"># route the repo to every gate that applies</span>
       - id: hardhats-secrets   <span class="dim"># or pick the ones you want</span></code></pre>

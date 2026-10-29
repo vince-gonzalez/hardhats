@@ -68,7 +68,7 @@ def _declared(path):
             import tomllib
             _walk_bindings(tomllib.loads(raw), out)
             return out, True
-        except Exception:  # noqa: BLE001 - fall through to a shallow regex read
+        except (ImportError, ValueError):  # no tomllib (<3.11) or malformed TOML - use the regex read
             pass
         # shallow fallback: binding = "X", name = "X", and [vars] keys
         out.update(re.findall(r'(?m)^\s*(?:binding|name)\s*=\s*"([^"]+)"', raw))

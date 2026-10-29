@@ -56,7 +56,7 @@ def _scan_file(path):
         p = _Html()
         try:
             p.feed(text)
-        except Exception:  # noqa: BLE001 - malformed HTML still yields what parsed
+        except (ValueError, AssertionError):  # a parser error on malformed HTML still yields what parsed
             pass
         return p.hrefs, p.ids
     if path.lower().endswith((".md", ".markdown")):

@@ -500,7 +500,8 @@ class SeatContract(unittest.TestCase):
                  "resilient", "schema", "sec", "spec", "tests", "vision", "route", "env",
                  "links", "richdata", "perf", "inject", "ghactions", "seizure", "pwa", "og",
                  "gameperf", "traffic", "attribution", "seo", "deliverability", "community",
-                 "loop", "relay"}
+                 "loop", "relay",
+                 "claims", "security", "contract", "reproducible", "reach", "safety"}
         self.assertTrue(known <= set(self.reg), "dropped seats: %s" % (known - set(self.reg)))
 
     def test_every_seat_has_main_and_a_matching_tag(self):
@@ -593,8 +594,36 @@ class Dispatcher(unittest.TestCase):
                     "proof", "repro", "resilient", "schema", "sec", "spec", "tests", "vision",
                     "route", "env", "links", "richdata", "perf", "inject", "ghactions",
                     "seizure", "pwa", "og", "gameperf", "traffic", "attribution", "seo",
-                    "deliverability", "community", "loop", "relay"}
+                    "deliverability", "community", "loop", "relay",
+                    "claims", "security", "contract", "reproducible", "reach", "safety"}
         self.assertEqual(set(reg), expected)
+
+
+class Leads(unittest.TestCase):
+    """A lead is a foreman: it runs only the member checks whose signal is present on the target,
+    composes ONE verdict, and lists the members it did NOT run - so a clear is never a blank cheque
+    and a lead adds no checking logic of its own (every verdict is a member seat's)."""
+
+    def test_security_lead_composes_a_member_defect(self):
+        from hardhats.crews import security
+        rep = security.review(fx("inject", "risk"), log=None)
+        ran = {e.get("seat") for e in rep["ran"]}
+        self.assertIn("inject", ran)                       # a source dir gives inject its signal
+        self.assertTrue(rep["failed"], "the injection sink must surface as a failed member")
+        self.assertTrue(rep["verdict"].startswith("SECURITY DEFECT"))
+        self.assertIn("sec", rep["not_run"])               # sec needs a URL - surfaced, not a silent pass
+
+    def test_lead_surfaces_every_member_with_no_signal(self):
+        import tempfile
+        from hardhats.crews import claims
+        with tempfile.TemporaryDirectory() as d:
+            p = os.path.join(d, "plain.txt")
+            with open(p, "w", encoding="utf-8") as fh:
+                fh.write("just prose, nothing here routes to a claims member\n")
+            rep = claims.review(p, log=None)
+        self.assertEqual([e.get("seat") for e in rep["ran"]], [])   # a .txt routes to no claims member
+        self.assertEqual(set(rep["not_run"]), set(claims.MEMBERS))  # every member surfaced, none hidden
+        self.assertTrue(rep["verdict"].startswith("NOTHING APPLIED"))
 
 
 if __name__ == "__main__":

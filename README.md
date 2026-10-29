@@ -11,9 +11,9 @@ hands you the line.
 
 ```
 pip install hardhats
-python -m hardhats.crews                    # list the seats
-python -m hardhats.crews crypteng ./src     # e.g. scan a tree for committed secrets
-python -m hardhats.crews sec https://your.site
+python -m hardhats.crews                    # list the six inspectors and their checks
+python -m hardhats.crews security ./src     # every security check that applies, as one verdict
+python -m hardhats.crews claims ./paper     # force every claim against a real measurement
 ```
 
 Add `--json` to any seat for a machine-readable verdict a script or another agent can read.
@@ -31,28 +31,32 @@ handed the facts *after* they exist — they cannot overrule a gate and are neve
 something passed. That is the moat: the output is a finding with a location, not a vibe. Every
 seat also prints what it did **not** check, so a clean result never reads as a blank cheque.
 
-## The bench — an expert for the call
+## Six inspectors
 
-40 seats, summoned by keyword, each gated on a real external standard it cannot fake:
+Point an inspector at a file, a folder, or a URL. It runs only the checks whose signal is present, composes one verdict, and prints what it did **not** check — so a clear is never a blank cheque.
 
-| keyword | what it catches |
-|---|---|
-| `crypteng` | a secret committed in the clear, or crypto broken by design (values redacted) |
-| `tests` | a test suite that only *looks* real — mutation testing, not a green checkmark |
-| `sec` | missing OWASP secure headers on a live URL |
-| `schema` | SQL without primary keys or indexed foreign keys |
-| `resilient` | errors swallowed where a failure should surface |
+| inspector | the one question it answers | checks it runs |
+|---|---|---|
+| `claims` | does every claim survive a real measurement? | proof, geom, vision, tests, ops, balance, perf, gameperf, resilient |
+| `security` | can a hostile input get control or data? | crypteng, inject, ghactions, sec |
+| `contract` | is every declared part present and consistent? | api, schema, spec, i18n, richdata, og, env, method |
+| `reproducible` | will it run the same for someone else? | deps, repro, archive |
+| `reach` | can a real person find, receive, and trust the path? | seo, deliverability, links, traffic, pwa, attribution |
+| `safety` | will it harm or break the law against the person on the other end? | seizure, vpat, food, license, privacy |
 
-…and 35 more — `inject` (RCE / injection patterns), `ghactions` (CI-workflow security), `seizure` (photosensitive-flash safety), `pwa` (installable), `og` (shareable), `gameperf` (60 fps hold), `traffic` (human-vs-bot reach), `attribution` (UTM integrity), `seo` (indexability floor), `deliverability` (email auth), `community` / `loop` / `relay` (the distribution plays), `api`, `cite`, `proof`, `vision`, `geom`, `i18n`, `perf`, `links`, `env`, `richdata`, `spec`, `method`, `archive`, `repro`, `deps`, `food`, `ops`, `balance`, `cipher`, `privacy`, `license`, `route`.
-
-Don't know which seat? Point the router at the thing and it picks:
+Every check answers to a real external standard it cannot fake — WCAG, OWASP, OpenAPI, a Metamath kernel, CIEDE2000, the FDA label rules — and still runs on its own by keyword:
 
 ```
-python -m hardhats.crews route ./my-project
-python -m hardhats.crews ./openapi.json        # a bare path routes too
+python -m hardhats.crews inject ./src          # one check by name
+python -m hardhats.crews security ./src        # or the whole inspector
+python -m hardhats.crews ./openapi.json        # a bare path routes to the check that fits
 ```
 
-Full catalog, with the standard behind each gate: [`hardhats/crews/README.md`](hardhats/crews/README.md).
+Full catalog, with the standard behind each check: [`hardhats/crews/README.md`](hardhats/crews/README.md).
+
+### Instruments
+
+An instrument measures and refuses to render a pass or fail, because no honest verdict exists. `cipher` reports index of coincidence and entropy on a symbol stream and says plainly what stays open; it never calls a text a cipher or a hoax. Keeping a measurement apart from a verdict is the same discipline as the gates.
 
 ## Gate your repo (CI / pre-commit)
 
@@ -70,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: vince-gonzalez/hardhats@v0.4.0
+      - uses: vince-gonzalez/hardhats@v0.5.0
         # with:
         #   target: .          # a path, a folder, or a URL (default: the checked-out repo)
         #   seat: crypteng     # run one named gate instead of the router
@@ -83,7 +87,7 @@ Catch it before it ever leaves your machine, with pre-commit:
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/vince-gonzalez/hardhats
-    rev: v0.4.0
+    rev: v0.5.0
     hooks:
       - id: hardhats            # route the repo to every gate whose signal is present
       # - id: hardhats-secrets  # or pick the gates you want
