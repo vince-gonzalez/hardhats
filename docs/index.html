@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hardHats</title>
+<meta name="description" content="Point hardHats at a file, a folder, or a URL and it returns PASS or FAIL with the finding, because a real check produced it, not an opinion. A Python bench and GitHub Action.">
+<meta property="og:title" content="hardHats">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://vince-gonzalez.github.io/hardhats/">
+<meta property="og:description" content="A verdict a chatbot can't fake. A bench of 40 gates and a GitHub Action that fails the build on a real defect.">
+<!-- og:image + og:image:width/height are added at publish with the hosted absolute URL (1200x630). -->
+<meta name="twitter:card" content="summary">
+<style>
+  :root{
+    --bg:#0b0f10; --bg2:#141a1c; --line:#26312f;
+    --fg:#e9edf0; --muted:#aeb8bd;
+    --acc:#ffb000; --acc-ink:#ffc64d;
+    --ok:#4ae08a; --fail:#ff6a5c; --review:#ffd45e;
+    --link:#79d2ff;
+    --mono:ui-monospace,"Cascadia Code","Consolas","SF Mono",Menlo,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:var(--sans); font-size:17px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--link);}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px;}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--acc);color:#120d00;padding:10px 14px;border-radius:0 0 8px 0;font-weight:700;}
+  .skip:focus{left:0;z-index:50;}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px;}
+
+  header.site{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,15,16,.92);backdrop-filter:blur(6px);z-index:20;}
+  header.site .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;flex-wrap:wrap;}
+  .brand{font-family:var(--mono);font-weight:700;font-size:19px;letter-spacing:.02em;color:var(--fg);text-decoration:none;}
+  .brand b{color:var(--acc);}
+  nav.top a{color:var(--muted);text-decoration:none;font-size:15px;margin-left:16px;white-space:nowrap;}
+  nav.top a:hover{color:var(--fg);}
+
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  h1{font-family:var(--mono);font-size:clamp(34px,7vw,56px);line-height:1.05;margin:0 0 10px;letter-spacing:-.01em;}
+  h1 .hat{color:var(--acc);}
+  .tag{font-size:clamp(19px,3.4vw,24px);color:var(--fg);margin:0 0 8px;font-weight:600;}
+  .lede{color:var(--muted);font-size:18px;max-width:62ch;margin:0 0 26px;}
+  h2{font-family:var(--mono);font-size:26px;margin:0 0 14px;color:var(--acc-ink);}
+  h3{font-size:18px;margin:22px 0 6px;}
+  p{max-width:68ch;}
+  .muted{color:var(--muted);}
+
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin:22px 0 0;}
+  .btn{display:inline-block;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:9px;font-size:16px;}
+  .btn.primary{background:var(--acc);color:#120d00;}
+  .btn.ghost{border:1px solid #5f7175;color:var(--fg);}  /* >=3:1 edge for 1.4.11 */
+  .btn:hover{filter:brightness(1.08);}
+
+  pre{background:#0d1416;border:1px solid var(--line);border-radius:10px;padding:16px 18px;overflow-x:auto;margin:16px 0;}
+  code{font-family:var(--mono);font-size:14.5px;}
+  pre code{color:#d7e2e6;line-height:1.55;}
+  .term .cmd{color:var(--acc-ink);}
+  .term .ok{color:var(--ok);}
+  .term .fail{color:var(--fail);}
+  .term .rev{color:var(--review);}
+  .term .dim{color:var(--muted);}
+
+  .pill{display:inline-block;font-family:var(--mono);font-size:13px;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.03em;}
+  .pill.ok{background:rgba(74,224,138,.15);color:var(--ok);}
+  .pill.fail{background:rgba(255,106,92,.15);color:var(--fail);}
+  .pill.rev{background:rgba(255,212,94,.15);color:var(--review);}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 0;}
+  .card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card h3{margin:0 0 4px;font-family:var(--mono);color:var(--fg);}
+  .card p{margin:0;color:var(--muted);font-size:15.5px;}
+  .seatline{font-family:var(--mono);font-size:14.5px;color:var(--muted);margin:14px 0 0;line-height:1.9;}
+  .seatline b{color:var(--acc-ink);font-weight:600;}
+
+  ul.plain{list-style:none;padding:0;margin:14px 0 0;}
+  ul.plain li{padding:7px 0 7px 26px;position:relative;color:var(--fg);}
+  ul.plain li::before{content:"";position:absolute;left:0;top:14px;width:12px;height:2px;background:var(--acc);}
+
+  footer{padding:40px 0;color:var(--muted);font-size:15px;}
+  footer a{color:var(--link);}
+  @media (max-width:560px){
+    section{padding:40px 0;}
+    .grid{grid-template-columns:1fr;}
+    nav.top a{margin-left:12px;font-size:14px;}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="#top"><b>hard</b>Hats</a>
+    <nav class="top" aria-label="Primary">
+      <a href="#install">Install</a>
+      <a href="#bench">The bench</a>
+      <a href="#ci">Gate CI</a>
+      <a href="#factory">The factory</a>
+      <a href="https://github.com/vince-gonzalez/hardhats">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section id="top">
+  <div class="wrap">
+    <h1><span class="hat">hard</span>Hats</h1>
+    <p class="tag">A verdict a chatbot can't fake.</p>
+    <p class="lede">Point hardHats at a file, a folder, or a URL and it returns PASS or FAIL with the
+      finding, because a real check produced it, not an opinion. A chatbot can write a paragraph that
+      looks like a security review. It cannot hand you the file and line of the committed secret.
+      hardHats hands you the line.</p>
+
+    <pre class="term" aria-label="Example: hardHats catching a committed secret"><code><span class="dim"># a real check, run on a real tree</span>
+<span class="cmd">$ python -m hardhats.crews crypteng ./src</span>
+
+  <span class="fail">[FAIL]</span> private key committed in the clear   src/config/dev.pem:1
+  <span class="fail">[FAIL]</span> hardcoded token (value redacted)       src/api/client.js:42
+
+<span class="dim">== VERDICT:</span> <span class="fail">EXPOSED</span> <span class="dim">==   (exit 1 — the build stops here)</span></code></pre>
+
+    <div class="cta">
+      <a class="btn primary" href="#install">pip install hardhats</a>
+      <a class="btn ghost" href="https://pypi.org/project/hardhats/">View on PyPI</a>
+    </div>
+  </div>
+</section>
+
+<section id="why">
+  <div class="wrap">
+    <h2>Why it holds</h2>
+    <p>A seat is a crew of <b>hats</b>, and a hat is one of two things:</p>
+    <div class="grid">
+      <div class="card"><h3>A gate hat</h3><p>A deterministic function: a real check, a measurement,
+        a linter. Zero tokens, same answer every time.</p></div>
+      <div class="card"><h3>An LLM hat</h3><p>A model wearing an instruction, doing only the judgement
+        a rule cannot, handed the facts after they exist.</p></div>
+    </div>
+    <p style="margin-top:20px">The gate hats settle the facts. The LLM hats never overrule a gate and
+      are never asked whether something passed. That is the moat: the output is a finding with a
+      location, not a vibe. And the exit code <b>is</b> the verdict, so hardHats drops into any
+      pipeline as a gate. <code>1</code> fails the step. Every seat also prints what it did
+      <b>not</b> check, so a clean result never reads as a blank cheque.</p>
+  </div>
+</section>
+
+<section id="install">
+  <div class="wrap">
+    <h2>Thirty seconds</h2>
+    <pre class="term"><code><span class="cmd">$ pip install hardhats</span>
+<span class="cmd">$ python -m hardhats.crews</span>              <span class="dim"># list the 40 seats</span>
+<span class="cmd">$ python -m hardhats.crews sec https://your.site</span>   <span class="dim"># missing OWASP headers</span>
+<span class="cmd">$ python -m hardhats.crews route ./my-project</span>      <span class="dim"># don't know which? let it pick</span></code></pre>
+    <p class="muted">Add <code>--json</code> to any seat for a machine-readable envelope a script or
+      another agent can read: <code>seat</code>, <code>verdict</code>, <code>exit</code>, <code>detail</code>.</p>
+  </div>
+</section>
+
+<section id="bench">
+  <div class="wrap">
+    <h2>The bench — an expert for the call</h2>
+    <p>40 seats, summoned by keyword, each gated on a real external standard it cannot fake.</p>
+    <div class="grid">
+      <div class="card"><h3>crypteng</h3><p>A secret committed in the clear, or crypto broken by design. Values redacted.</p></div>
+      <div class="card"><h3>inject</h3><p>The calls that turn data into code: eval/exec, unsafe deserialization, injected shell.</p></div>
+      <div class="card"><h3>ghactions</h3><p>Script injection and pwn-request patterns in your CI workflows.</p></div>
+      <div class="card"><h3>seizure</h3><p>Photosensitive-flash candidates, measured against the WCAG 2.3.1 three-per-second limit.</p></div>
+      <div class="card"><h3>tests</h3><p>A suite that only looks real: mutation testing, not a green checkmark.</p></div>
+      <div class="card"><h3>sec</h3><p>Missing OWASP secure headers on a live URL.</p></div>
+    </div>
+    <p class="seatline">and 34 more:
+      <b>og</b> <b>seo</b> <b>deliverability</b> <b>traffic</b> <b>attribution</b> <b>pwa</b>
+      <b>gameperf</b> <b>perf</b> <b>a11y</b> <b>api</b> <b>schema</b> <b>deps</b> <b>env</b>
+      <b>links</b> <b>richdata</b> <b>resilient</b> <b>proof</b> <b>cite</b> <b>geom</b> <b>vision</b>
+      <b>i18n</b> <b>spec</b> <b>method</b> <b>archive</b> <b>repro</b> <b>privacy</b> <b>license</b>
+      <b>food</b> <b>ops</b> <b>balance</b> <b>cipher</b> <b>community</b> <b>loop</b> <b>relay</b>.</p>
+  </div>
+</section>
+
+<section id="ci">
+  <div class="wrap">
+    <h2>Gate your repo</h2>
+    <p>As a GitHub Action, point it at the repo or a URL and let the router pick the gates that apply.
+      A hard finding fails the build.</p>
+    <pre class="term"><code><span class="dim"># .github/workflows/gate.yml</span>
+<span class="cmd">name:</span> gate
+<span class="cmd">on:</span> [push, pull_request]
+<span class="cmd">permissions:</span> { contents: read }
+<span class="cmd">jobs:</span>
+  hardhats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: <span class="ok">vince-gonzalez/hardhats@v0.4.0</span></code></pre>
+    <p>Catch it before it ever leaves your machine, with pre-commit:</p>
+    <pre class="term"><code><span class="dim"># .pre-commit-config.yaml</span>
+repos:
+  - repo: https://github.com/vince-gonzalez/hardhats
+    rev: v0.4.0
+    hooks:
+      - id: <span class="ok">hardhats</span>            <span class="dim"># route the repo to every gate that applies</span>
+      - id: hardhats-secrets   <span class="dim"># or pick the ones you want</span></code></pre>
+  </div>
+</section>
+
+<section id="factory">
+  <div class="wrap">
+    <h2>The factory</h2>
+    <p>The bench is a production line, not a pile. One command scaffolds a new seat that already obeys
+      the contract: a keyword the dispatcher discovers, a working check, and a fixture pair. It
+      registers and passes the suite the moment it is minted.</p>
+    <pre class="term"><code><span class="cmd">$ python -m hardhats.new rustfmt --standard "cargo fmt --check"</span>
+  minted seat: hardhats/crews/rustfmt.py
+  <span class="dim">summon it:</span>   python -m hardhats.crews rustfmt ./src</code></pre>
+    <p>Then replace the one marked rule with the check your standard defines. A test holds every seat,
+      hand-written or minted, to the same shape, so a seat that drifts off it goes red.</p>
+  </div>
+</section>
+
+<section id="proof">
+  <div class="wrap">
+    <h2>What a real run looks like</h2>
+    <p>Pointed at a 698&nbsp;KB production browser game, the bench answered in seconds. Not a demo:
+      genuine verdicts, including the ones a human still has to settle.</p>
+    <pre class="term"><code><span class="cmd">$ python -m hardhats.crews seo    ./game.html</span>   <span class="ok">SEO FLOOR MET</span>
+<span class="cmd">$ python -m hardhats.crews sec    https://…   </span>   <span class="rev">REVIEW</span>  <span class="dim">(required headers present; 3 hardening notes)</span>
+<span class="cmd">$ python -m hardhats.crews og     ./game.html</span>   <span class="rev">REVIEW</span>  <span class="dim">(add og:image:width/height)</span>
+<span class="cmd">$ python -m hardhats.crews seizure ./game.html</span>  <span class="rev">REVIEW</span>  <span class="dim">(10 flash candidates flagged to confirm)</span></code></pre>
+    <p class="muted">That last line is the whole idea. <span class="pill rev">REVIEW</span> is not a
+      pass and not a fail: the bench flagged ten fast-animation and timer sources and named the file
+      and line of each, so a person can open them and settle whether any actually strobes. It does the
+      finding. You keep the judgement.</p>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><a href="https://github.com/vince-gonzalez/hardhats">GitHub</a> ·
+       <a href="https://pypi.org/project/hardhats/">PyPI</a> ·
+       MIT licensed · Copyright Vincent Gonzalez / F-Keys Creative LLC.</p>
+  </div>
+</footer>
+
+</body>
+</html>
