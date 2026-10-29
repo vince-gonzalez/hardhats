@@ -56,22 +56,25 @@ Full catalog, with the standard behind each gate: [`hardhats/crews/README.md`](h
 
 ## Gate your repo (CI / pre-commit)
 
-The exit code *is* the verdict, so any seat drops into a pipeline as a gate — `1` fails the step.
+The exit code *is* the verdict, so hardHats drops into a pipeline as a gate: `1` fails the step.
+As a GitHub Action, point it at the repo (or a URL) and let the router pick the gates that apply:
 
 ```yaml
 # .github/workflows/gate.yml
 name: gate
 on: [push, pull_request]
+permissions:
+  contents: read
 jobs:
   hardhats:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - run: pip install hardhats
-      - run: python -m hardhats.crews crypteng .     # a committed secret fails the build
-      - run: python -m hardhats.crews resilient .    # a swallowed error fails the build
+      - uses: vince-gonzalez/hardhats@v0.4.0
+        # with:
+        #   target: .          # a path, a folder, or a URL (default: the checked-out repo)
+        #   seat: crypteng     # run one named gate instead of the router
+        #   strict: "true"     # also fail when a gate could not run at all (exit 2)
 ```
 
 Catch it before it ever leaves your machine, with pre-commit:
@@ -79,17 +82,35 @@ Catch it before it ever leaves your machine, with pre-commit:
 ```yaml
 # .pre-commit-config.yaml
 repos:
-  - repo: local
+  - repo: https://github.com/vince-gonzalez/hardhats
+    rev: v0.4.0
     hooks:
-      - id: hardhats-crypteng
-        name: hardhats crypteng
-        entry: python -m hardhats.crews crypteng
-        language: system
-        pass_filenames: false
-        args: ["."]
+      - id: hardhats            # route the repo to every gate whose signal is present
+      # - id: hardhats-secrets  # or pick the gates you want
+      # - id: hardhats-inject
 ```
 
-Want a report rather than a gate? Add `--json` and read the envelope — `exit`, `verdict`, `detail`.
+No CI framework at all? The raw command is the same gate, and `1` still fails:
+
+```
+python -m hardhats.crews crypteng .    # a committed secret fails the build
+python -m hardhats.crews route .       # or let the router pick the gates
+```
+
+Want a report rather than a gate? Add `--json` and read the envelope: `exit`, `verdict`, `detail`.
+
+## Mint a new seat
+
+The bench is a production line, not a pile. One command scaffolds a seat that already obeys the
+contract (a keyword tag the dispatcher discovers, a working `review()`/`main()`, and a fixture
+pair), so it registers and passes the suite the moment it is minted:
+
+```
+python -m hardhats.new <keyword> --title "THE X CREW" --standard "CWE-123"
+```
+
+Then replace the one marked rule with the check your standard defines. The bench's own
+`SeatContract` test holds every seat to the same shape, so a seat that drifts off it goes red.
 
 ## Build your own crew
 

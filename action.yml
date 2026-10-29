@@ -1,0 +1,98 @@
+name: "hardHats gate"
+description: "Point hardHats at a file, folder, or URL; fail the build on a real defect. A verdict a chatbot can't fake."
+author: "Vincent Gonzalez / F-Keys Creative LLC"
+branding:
+  icon: "shield"
+  color: "yellow"
+
+inputs:
+  target:
+    description: "File, directory, or URL to gate. Default: the checked-out repo."
+    required: false
+    default: "."
+  seat:
+    description: "Run one named seat (crypteng, inject, ghactions, sec, ...) instead of the router."
+    required: false
+    default: ""
+  args:
+    description: "Extra arguments passed straight through to the seat."
+    required: false
+    default: ""
+  python-version:
+    description: "Python used to run the bench."
+    required: false
+    default: "3.12"
+  version:
+    description: "hardhats version to install from PyPI. Default: the latest release."
+    required: false
+    default: ""
+  strict:
+    description: "Also fail when the bench could not run (exit 2), not only on a defect (exit 1)."
+    required: false
+    default: "false"
+
+outputs:
+  exit:
+    description: "The seat's exit code: 0 clears, 1 caught the defect, 2 could not run."
+    value: ${{ steps.gate.outputs.exit }}
+  verdict:
+    description: "The seat's verdict line."
+    value: ${{ steps.gate.outputs.verdict }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install hardhats
+      shell: bash
+      env:
+        HH_VERSION: ${{ inputs.version }}
+      run: |
+        if [ -n "$HH_VERSION" ]; then
+          python -m pip install --quiet "hardhats==$HH_VERSION"
+        else
+          python -m pip install --quiet hardhats
+        fi
+
+    - name: Run the gate
+      id: gate
+      shell: bash
+      env:
+        HH_TARGET: ${{ inputs.target }}
+        HH_SEAT: ${{ inputs.seat }}
+        HH_ARGS: ${{ inputs.args }}
+        HH_STRICT: ${{ inputs.strict }}
+      run: |
+        out="$RUNNER_TEMP/hardhats.out"
+        set +e
+        if [ -n "$HH_SEAT" ]; then
+          python -m hardhats.crews "$HH_SEAT" "$HH_TARGET" $HH_ARGS 2>&1 | tee "$out"
+        else
+          python -m hardhats.crews route "$HH_TARGET" $HH_ARGS 2>&1 | tee "$out"
+        fi
+        code=${PIPESTATUS[0]}
+        set -e
+        verdict=$(grep -oE 'VERDICT: .+' "$out" | tail -1 | sed -E 's/^VERDICT: //; s/ ==+$//')
+        echo "exit=$code" >> "$GITHUB_OUTPUT"
+        echo "verdict=$verdict" >> "$GITHUB_OUTPUT"
+        {
+          echo "### hardHats gate"
+          echo ""
+          echo "- seat: \`${HH_SEAT:-route}\`"
+          echo "- target: \`$HH_TARGET\`"
+          echo "- verdict: **${verdict:-(none)}**"
+          echo "- exit: \`$code\`"
+        } >> "$GITHUB_STEP_SUMMARY"
+        if [ "$code" = "1" ]; then
+          echo "::error::hardHats caught a defect: ${verdict:-see the log above}"
+          exit 1
+        fi
+        if [ "$code" = "2" ]; then
+          echo "::warning::hardHats could not run a gate on this target: ${verdict:-no seat matched}"
+          if [ "$HH_STRICT" = "true" ]; then exit 1; fi
+        fi
+        exit 0

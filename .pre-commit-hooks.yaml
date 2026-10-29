@@ -1,0 +1,47 @@
+# hardHats as pre-commit hooks. In another repo's .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/vince-gonzalez/hardhats
+#       rev: v0.4.0
+#       hooks:
+#         - id: hardhats            # route the repo to every gate whose signal is present
+#         # or pick the gates you want:
+#         - id: hardhats-secrets
+#         - id: hardhats-inject
+#
+# Each hook runs the bench's exit code AS the verdict: a hard finding (exit 1) blocks the commit.
+- id: hardhats
+  name: hardHats (route the repo to the gates that apply)
+  description: Classify the repo and run every bench gate whose signal is present; a defect blocks the commit.
+  entry: python -m hardhats.crews route
+  language: python
+  pass_filenames: false
+  always_run: true
+  args: ["."]
+
+- id: hardhats-secrets
+  name: hardHats crypteng (committed secrets / crypto broken by design)
+  description: Scan the tree for a secret committed in the clear; values are redacted in the report.
+  entry: python -m hardhats.crews crypteng
+  language: python
+  pass_filenames: false
+  always_run: true
+  args: ["."]
+
+- id: hardhats-inject
+  name: hardHats inject (arbitrary-execution / injection patterns)
+  description: Flag the calls that turn data into code (eval/exec, unsafe deserialization, injected shell).
+  entry: python -m hardhats.crews inject
+  language: python
+  pass_filenames: false
+  always_run: true
+  args: ["."]
+
+- id: hardhats-ghactions
+  name: hardHats ghactions (CI-workflow security)
+  description: Flag script injection and pwn-request patterns in .github/workflows.
+  entry: python -m hardhats.crews ghactions
+  language: python
+  pass_filenames: false
+  always_run: true
+  args: ["."]

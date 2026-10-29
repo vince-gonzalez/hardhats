@@ -16,6 +16,7 @@ discoverable the VERIFIED / REJECTED pair is proven too.
 """
 import json
 import os
+import re
 import subprocess
 import sys
 import unittest
@@ -48,6 +49,7 @@ from hardhats.crews import (api, archive, attribution, balance, cipher, cite, cr
                             traffic, vision)
 from hardhats.crews import testing as testing_seat
 from hardhats.crews import community, floor, loop, reckoning, relay
+from hardhats import new
 
 try:
     import opticquiz_cvd  # noqa: F401 - the vision seat delegates to it when present
@@ -480,6 +482,106 @@ class ReckoningPanel(unittest.TestCase):
         crew = reckoning.build_crew("we got 10k views")
         self.assertEqual([h for h in crew.hats if h.kind == "gate"], [])
         self.assertEqual(len([h for h in crew.hats if h.kind == "llm"]), 3)
+
+
+class SeatContract(unittest.TestCase):
+    """The factory contract: every discovered seat obeys ONE shape, so a seat minted by
+    `python -m hardhats.new` drops into the bench with no special-casing. This is what makes
+    the bench a production line and not a pile - a seat that breaks the shape fails here."""
+
+    def setUp(self):
+        from hardhats.crews.__main__ import discover
+        self.reg = discover()
+
+    def test_known_set_is_still_registered(self):
+        # the bench may grow, but it must never silently drop one of the known seats
+        known = {"api", "archive", "balance", "cipher", "cite", "crypteng", "deps", "food",
+                 "geom", "i18n", "license", "method", "ops", "privacy", "proof", "repro",
+                 "resilient", "schema", "sec", "spec", "tests", "vision", "route", "env",
+                 "links", "richdata", "perf", "inject", "ghactions", "seizure", "pwa", "og",
+                 "gameperf", "traffic", "attribution", "seo", "deliverability", "community",
+                 "loop", "relay"}
+        self.assertTrue(known <= set(self.reg), "dropped seats: %s" % (known - set(self.reg)))
+
+    def test_every_seat_has_main_and_a_matching_tag(self):
+        import importlib
+        tag = re.compile(r"keyword `([^`]+)`")
+        for kw, (mod, _summary) in sorted(self.reg.items()):
+            module = importlib.import_module("hardhats.crews." + mod)
+            self.assertTrue(callable(getattr(module, "main", None)),
+                            "seat %r (%s.py) has no callable main()" % (kw, mod))
+            self.assertTrue(module.__doc__, "seat %r (%s.py) has no module docstring" % (kw, mod))
+            m = tag.search(module.__doc__)
+            self.assertTrue(m, "seat %r (%s.py) docstring has no (keyword `..`) tag" % (kw, mod))
+            self.assertEqual(m.group(1), kw,
+                             "seat %r is tagged %r - tag and registry disagree" % (kw, m.group(1)))
+
+    def test_keywords_are_unique(self):
+        # discover() is a dict, so a duplicate tag would silently win; re-scan to catch it.
+        from hardhats.crews import __main__ as dispatch
+        crews_dir = os.path.dirname(dispatch.__file__)
+        tag = re.compile(r"keyword `([^`]+)`")
+        claimed = {}
+        for fn in sorted(os.listdir(crews_dir)):
+            if not fn.endswith(".py") or fn.startswith("_") or fn in dispatch._SKIP:
+                continue
+            with open(os.path.join(crews_dir, fn), encoding="utf-8", errors="replace") as fh:
+                src = fh.read()
+            doc = re.search(r'"""(.*?)"""', src, re.S)
+            m = tag.search(doc.group(1)) if doc else None
+            if not m:
+                continue
+            self.assertNotIn(m.group(1), claimed,
+                             "keyword %r claimed by both %s and %s"
+                             % (m.group(1), claimed.get(m.group(1)), fn))
+            claimed[m.group(1)] = fn
+
+
+class Scaffolder(unittest.TestCase):
+    """The factory proves itself: hardhats.new.render mints a seat that already obeys the
+    contract - tagged, importable, a working review()/main() - without touching the package.
+    A clean input clears and a planted marker is caught, so a minted seat ships green."""
+
+    def test_minted_seat_obeys_the_contract(self):
+        import importlib.util
+        import tempfile
+        src = new.render("probe", title="THE PROBE CREW",
+                         standard="a worked example", summary="flags a leftover marker.")
+        self.assertEqual(re.search(r"keyword `([^`]+)`", src).group(1), "probe")
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "probe.py")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(src)
+            spec = importlib.util.spec_from_file_location("hh_probe_seat", path)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            self.assertTrue(callable(mod.main) and callable(mod.review))
+            clean = os.path.join(d, "clean")
+            os.mkdir(clean)
+            with open(os.path.join(clean, "a.txt"), "w", encoding="utf-8") as fh:
+                fh.write("nothing here\n")
+            bad = os.path.join(d, "bad")
+            os.mkdir(bad)
+            with open(os.path.join(bad, "b.txt"), "w", encoding="utf-8") as fh:
+                fh.write("x = 1  # TODO fix\n")
+            self.assertEqual(mod.review(clean, log=None)["verdict"], "CLEAN")
+            self.assertEqual(mod.review(bad, log=None)["verdict"], "MARKERS PRESENT")
+
+    def test_reserved_names_come_from_gitignore(self):
+        # the guard reads the git-ignored names from .gitignore, not a hardcoded list
+        reserved = new._reserved()
+        self.assertIn("council", reserved)
+        self.assertIn("jury", reserved)
+        self.assertNotIn("ghactions", reserved)          # a real public seat is never reserved
+        self.assertFalse(new.is_reserved("totallynewseat"))
+        for name in ("council", "jury", "scout"):
+            with self.assertRaises(ValueError):
+                new.validate(name)
+
+    def test_refuses_malformed_names(self):
+        for name in ("UPPER", "1st", "a", "has-dash", ""):
+            with self.assertRaises(ValueError):
+                new.validate(name)
 
 
 class Dispatcher(unittest.TestCase):
